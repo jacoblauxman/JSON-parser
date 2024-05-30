@@ -22,5 +22,5 @@ fn main() {
 
     // Test shape #2 (SAM):
     let _sam = construct_sam();
-    println!("\r\n\nHere is Sammy (`Display` impl): \r\n\n {}\r\n", _sam);
+    // println!("\r\n\nHere is Sammy (`Display` impl): \r\n\n{}\r\n", _sam);
 }

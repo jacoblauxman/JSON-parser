@@ -65,7 +65,7 @@ pub fn parse_object(input: &str) -> Result<JsonValue, JsonError> {
 }
 
 pub fn parse_array(input: &str) -> Result<JsonValue, JsonError> {
-    println!("input provided to parse_array: {}", input);
+    // println!("input provided to parse_array: {}", input);
 
     let input = input.trim();
 
