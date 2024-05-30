@@ -1,0 +1,3 @@
+{ "test": "this is is bad json - no ending bracket"
+{ test : this is bad json - no quotes }
+// { "test" : "this is bad json - no comments" }
