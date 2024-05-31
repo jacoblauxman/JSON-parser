@@ -1,0 +1,41 @@
+{
+  "things": [
+    {
+      "key": "value",
+      "key-n": 101,
+      "key-o": {
+        "inner key": "inner value"
+      },
+      "key-l": ["list value"],
+      "key-test": [{ "testing": true }, { "testing": false }]
+    },
+    {
+      "key": "value",
+      "key-n": 101,
+      "key-o": {
+        "inner key": "inner value"
+      },
+      "key-l": ["list value"],
+      "key-test": [{ "testing": true }, { "testing": false }]
+    }
+  ],
+  "other things": {
+    "wow": "cool",
+    "does": {
+      "this": "work",
+      "?": true,
+      "maybe": false,
+      "a number too?": {
+        "nope!": {
+          "an array of numbers!": [
+            { "lol": "inside objects!", "number": 1 },
+            { "lol": "still inside objects!", "number": 2 },
+            { "lol": "really still inside objects!", "number": 3 },
+            { "lol": "inside, , ,  objects!", "number": 4 },
+            { "lol": "inside {} objects!", "number": 5 }
+          ]
+        }
+      }
+    }
+  }
+}
