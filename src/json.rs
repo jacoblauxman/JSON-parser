@@ -7,6 +7,8 @@ pub enum JsonError {
     UnexpectedToken { input: String },
     MissingBrace,
     MissingBracket,
+    FileRead(String),
+    FileWrite,
 }
 
 impl fmt::Display for JsonError {
@@ -20,6 +22,15 @@ impl fmt::Display for JsonError {
             }
             JsonError::MissingBrace => write!(f, "Missing `{{` or `}}` token in JSON input"),
             JsonError::MissingBracket => write!(f, "Missing `[` or `]` token in JSON input"),
+            JsonError::FileRead(path) => {
+                write!(f, "Failed to read from the given file path: {}", path)
+            }
+            JsonError::FileWrite => {
+                write!(
+                    f,
+                    "Failed to write the parsed data to the `output.json` file."
+                )
+            }
         }
     }
 }
@@ -59,54 +70,70 @@ fn format_json(
     indent_lvl: usize,
     top_level: bool,
 ) -> fmt::Result {
-    let indent = "  ".repeat(indent_lvl);
-
     match value {
-        JsonValue::Object(obj) => {
-            if !top_level {
-                write!(f, "\n{}", indent)?;
-            }
-            write!(f, "{{")?;
-
-            let mut fields_it = obj.fields.iter().peekable();
-            while let Some((key, val)) = fields_it.next() {
-                write!(f, "\n  {}{}: ", indent, key)?;
-                format_json(val, f, indent_lvl + 1, false)?;
-
-                if fields_it.peek().is_some() {
-                    write!(f, ",")?;
-                }
-            }
-
-            if !top_level {
-                write!(f, "\n{}}}", indent)
-            } else {
-                write!(f, "\n}}")
-            }
-        }
-        JsonValue::Array(arr) => {
-            write!(f, "[")?;
-
-            let mut vals_it = arr.iter().peekable();
-            while let Some(val) = vals_it.next() {
-                format_json(val, f, indent_lvl + 1, false)?;
-
-                if vals_it.peek().is_some() {
-                    write!(f, ",")?;
-                }
-            }
-
-            if top_level {
-                write!(f, "\n]")
-            } else if arr.iter().any(|val| matches!(val, JsonValue::Object(_))) {
-                write!(f, "\n{}]", indent)
-            } else {
-                write!(f, "]")
-            }
-        }
+        JsonValue::Object(obj) => format_object(obj, f, indent_lvl, top_level),
+        JsonValue::Array(arr) => format_array(arr, f, indent_lvl, top_level),
         JsonValue::Bool(b) => write!(f, "{}", b),
         JsonValue::Number(n) => write!(f, "{}", n),
         JsonValue::String(s) => write!(f, "\"{}\"", s),
         JsonValue::Null => write!(f, "null"),
+    }
+}
+
+fn format_object(
+    obj: &JsonObject,
+    f: &mut fmt::Formatter<'_>,
+    indent_lvl: usize,
+    top_level: bool,
+) -> fmt::Result {
+    let indent = "  ".repeat(indent_lvl);
+
+    if !top_level {
+        write!(f, "\n{}", indent)?;
+    }
+    write!(f, "{{")?;
+
+    let mut fields_it = obj.fields.iter().peekable();
+    while let Some((key, val)) = fields_it.next() {
+        write!(f, "\n  {}{}: ", indent, key)?;
+        format_json(val, f, indent_lvl + 1, false)?;
+
+        if fields_it.peek().is_some() {
+            write!(f, ",")?;
+        }
+    }
+
+    if !top_level {
+        write!(f, "\n{}}}", indent)
+    } else {
+        write!(f, "\n}}")
+    }
+}
+
+fn format_array(
+    arr: &Vec<JsonValue>,
+    f: &mut fmt::Formatter<'_>,
+    indent_lvl: usize,
+    top_level: bool,
+) -> fmt::Result {
+    let indent = "  ".repeat(indent_lvl);
+
+    write!(f, "[")?;
+
+    let mut vals_it = arr.iter().peekable();
+    while let Some(val) = vals_it.next() {
+        format_json(val, f, indent_lvl + 1, false)?;
+
+        if vals_it.peek().is_some() {
+            write!(f, ",")?;
+        }
+    }
+
+    if top_level {
+        write!(f, "\n]")
+    } else if arr.iter().any(|val| matches!(val, JsonValue::Object(_))) {
+        write!(f, "\n{}]", indent)
+    } else {
+        write!(f, "]")
     }
 }

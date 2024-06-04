@@ -3,31 +3,27 @@ use std::collections::HashMap;
 
 pub fn parse_json(input: &str) -> Result<JsonValue, JsonError> {
     let input = input.trim();
-    // println!("input received in parse_json: {}", input);
 
-    parse_value(input)
-}
-
-pub fn parse_value(input: &str) -> Result<JsonValue, JsonError> {
-    let input = input.trim();
-    if input.starts_with('"') && input.ends_with('"') {
-        Ok(JsonValue::String(input[1..input.len() - 1].to_string())) // remove actual apostrophes (" ")
-    } else if let Ok(n) = input.parse::<f64>() {
-        Ok(JsonValue::Number(n))
-    } else if input == "true" {
-        Ok(JsonValue::Bool(true))
-    } else if input == "false" {
-        Ok(JsonValue::Bool(false))
-    } else if input.starts_with('{') && input.ends_with('}') {
-        parse_object(input)
-    } else if input.starts_with('[') && input.ends_with(']') {
-        parse_array(input)
-    } else if input == "null" {
-        Ok(JsonValue::Null)
-    } else {
-        Err(JsonError::UnexpectedToken {
+    match input {
+        _ if input.starts_with('{') && input.ends_with('}') => parse_object(input),
+        _ if input.starts_with('[') && input.ends_with(']') => parse_array(input),
+        _ if input.starts_with('"') && input.ends_with('"') => {
+            Ok(JsonValue::String(input[1..input.len() - 1].to_string()))
+        }
+        _ if input.parse::<f64>().is_ok() => {
+            input
+                .parse::<f64>()
+                .map(JsonValue::Number)
+                .map_err(|_| JsonError::UnexpectedToken {
+                    input: input.to_string(),
+                })
+        }
+        "true" => Ok(JsonValue::Bool(true)),
+        "false" => Ok(JsonValue::Bool(false)),
+        "null" => Ok(JsonValue::Null),
+        _ => Err(JsonError::UnexpectedToken {
             input: input.to_string(),
-        })
+        }),
     }
 }
 
@@ -53,7 +49,7 @@ pub fn parse_object(input: &str) -> Result<JsonValue, JsonError> {
         }
 
         let key = kv[0].trim().trim_matches('"').to_string();
-        let val = parse_value(kv[1].trim())?;
+        let val = parse_json(kv[1].trim())?;
 
         fields.insert(key, val);
     }
@@ -73,7 +69,7 @@ pub fn parse_array(input: &str) -> Result<JsonValue, JsonError> {
     let inner_parts = split_input(inner, ',')?;
 
     for part in inner_parts {
-        vals.push(parse_value(part.trim())?);
+        vals.push(parse_json(part.trim())?);
     }
 
     Ok(JsonValue::Array(vals))
