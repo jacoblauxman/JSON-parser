@@ -3,15 +3,23 @@ use std::fmt::{self, Formatter};
 
 #[derive(Debug, Clone)]
 pub enum JsonError {
-    InvalidSyntax,
-    UnexpectedToken,
+    InvalidSyntax { input: String },
+    UnexpectedToken { input: String },
+    MissingBrace,
+    MissingBracket,
 }
 
 impl fmt::Display for JsonError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            JsonError::InvalidSyntax => write!(f, "Invalid JSON Syntax"),
-            JsonError::UnexpectedToken => write!(f, "Unexpected token in JSON input"),
+            JsonError::InvalidSyntax { input } => {
+                write!(f, "Invalid syntax at `{}` in JSON input", input)
+            }
+            JsonError::UnexpectedToken { input } => {
+                write!(f, "Unexpected token value `{}` found in JSON input", input)
+            }
+            JsonError::MissingBrace => write!(f, "Missing `{{` or `}}` token in JSON input"),
+            JsonError::MissingBracket => write!(f, "Missing `[` or `]` token in JSON input"),
         }
     }
 }
